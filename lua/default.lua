@@ -62,7 +62,6 @@ end
 --Auxiliary: modstring "modStr" execution on PlayerOption "plrOpt"
 local function CRSY_doMods(plrOpt, modStr, debugOut)
 	if not plrOpt or modStr == "" then return end
-	modStr = ToLower and ToLower(modStr) or modStr:lower()
 	
 	if debugOut then CRSY_debugText_add(modStr) end
 	for rate,intensity,mod in modStr:gsub("( ?)no ", "%10 "):gmatch("(%*?[%d.]*) ?(c?-?[%d.]*)%%? ?(%w*),?") do
