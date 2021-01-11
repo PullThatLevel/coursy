@@ -64,7 +64,7 @@ local function CRSY_doMods(plrOpt, modStr, debugOut)
 	if not plrOpt or modStr == "" then return end
 	
 	if debugOut then CRSY_debugText_add(modStr) end
-	for rate,intensity,mod in modStr:gsub("( ?)no ", "%10 "):gmatch("(%*?[%d.]*) ?(c?-?[%d.]*)%%? ?(%w*),?") do
+	for rate,intensity,mod in modStr:gmatch("(%*?[%d.]*) ?(c?-?[%d.]*)%%? ?(%w*),?") do
 		--Rate preprocessing, default rate handling and number conversion
 		if #rate > 0 and rate:sub(1,1) ~= "*" then
 			rate, intensity, mod = "1", rate, intensity == "c" and intensity .. mod or mod
