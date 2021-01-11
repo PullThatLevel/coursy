@@ -1,6 +1,6 @@
 --[[
 	Stable in-place hybrid Merge Sort implementation in Lua.
-	Defines a single global: stable_sort(t,c) which does exactly what's described.
+	Should return a single function: stable_sort(t,c) which does exactly what's described.
 	Original code by S. Fisher, modified for Lua 5.0 by XeroOl and 5.1 by PullThatLevel.
 ]]--
 
