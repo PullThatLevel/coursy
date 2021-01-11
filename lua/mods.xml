@@ -1,0 +1,19 @@
+<ActorFrame><children>
+	<Layer Type="Quad"
+		InitCommand="%function(self)
+			self:hidden(1)
+			local MOD_OFFSET = 0.000
+			
+			--{second, length, len_or_end ('L' or 'E'), mods}
+			CRSY_modsList = {
+				--Your mods go here!
+			}
+			
+			--Offset post-processing!
+			for _,m in ipairs(CRSY_modsList) do
+				m[1] = m[1] - MOD_OFFSET
+				if m[3] == 'E' then m[2] = m[2] - MOD_OFFSET end 
+			end
+		end"
+	/>
+</children></ActorFrame>

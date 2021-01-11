@@ -1,0 +1,94 @@
+<ActorFrame><children>
+	<!--
+		Coursy, the little converter that could.
+		Only touch mods.xml! Leave this file unmodified!!
+		- PullThatLevel (2021)
+	-->
+	
+	<Layer File="mods.xml"/>
+	<Layer File="sort.xml"/>
+	
+	<Layer Type="Quad"
+		InitCommand="%function(self) --Dummy quad / song timer
+			CRSY_timer = self
+			self:hidden(1)
+			self:effectclock('music'); self:effectperiod(1/0); self:sleep(9999) --Thanks ArcticFqx!
+		end"
+	/>
+	
+	<Layer Type="Quad"
+		InitCommand="hidden,1;"
+		OnCommand="%function(self) --Initial setup
+			CRSY_curMod       = 1
+			CRSY_lastSecond   = 0
+			CRSY_activeMods   = {}
+			CRSY_globalOffset = PREFSMAN:GetPreference('GlobalOffsetSeconds')
+			
+			--FOV for widescreen support (thanks Ky_Dash!)
+			for i = 1,2 do
+				local curP = SCREENMAN:GetTopScreen():GetChild('PlayerP' .. i)
+				if curP then
+					curP:fov(360 / math.pi * math.atan(math.tan(math.pi * (1 / (360 / 45))) * SCREEN_WIDTH / SCREEN_HEIGHT * 0.75))
+				end
+			end
+			
+			--Aux function: inserts a mod on the active table given
+			function CRSY_insertActive(mod, delta)
+				table.insert(CRSY_activeMods, {
+					mod = mod[4],
+					len = mod[2] - (mod[3] == 'E' and mod[1] or 0) + delta
+				})
+			end
+			
+			self:queuecommand('Start')
+		end"
+		StartCommand="%function(self) --Further 'beat 0' setup
+			--Stable-sort all the mods
+			stable_sort(CRSY_modsList, function(x,y) return x[1] < y[1] end)
+			
+			--Prepopulation of activeMods to avoid bottlenecks on edit mode
+			local curTime = CRSY_globalOffset + CRSY_timer:GetSecsIntoEffect()
+			
+			for b,m in ipairs(CRSY_modsList) do
+				if curTime >= m[1] then
+					CRSY_insertActive(m, m[1])
+					CRSY_curMod = b+1
+				end
+			end
+			
+			self:queuecommand('Update')
+		end"
+		UpdateCommand="%function(self) --The engine itself!
+			local curTime  = CRSY_globalOffset + CRSY_timer:GetSecsIntoEffect()
+			local curDelta = curTime - CRSY_lastSecond
+			
+			--Add new mods if needed
+			while CRSY_modsList[CRSY_curMod] and curTime >= CRSY_modsList[CRSY_curMod][1] do
+				CRSY_insertActive(CRSY_modsList[CRSY_curMod], curDelta)
+				CRSY_curMod = CRSY_curMod + 1
+			end
+			--Process which mods should be kept
+			local insertMods, activeDeletes = {}, {}
+			for i = 1,table.getn(CRSY_activeMods) do
+				local curMod = CRSY_activeMods[i]
+				curMod.len = curMod.len - curDelta
+				if curMod.len > 0 then
+					table.insert(insertMods, curMod.mod)
+				else
+					activeDeletes[i] = true
+				end
+			end
+			--Delete no longer necessary mods
+			for i = table.getn(CRSY_activeMods),1,-1 do
+				if activeDeletes[i] then table.remove(CRSY_activeMods, i) end
+			end
+			--Execute the remaining mods!
+			GAMESTATE:ApplyGameCommand('mod,clearall')
+			GAMESTATE:ApplyGameCommand('mod,' .. table.concat(insertMods, ','))
+			
+			CRSY_lastSecond = curTime
+			self:sleep(1/60)
+			self:queuecommand('Update')
+		end"
+	/>
+</children></ActorFrame>
